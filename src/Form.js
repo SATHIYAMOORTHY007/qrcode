@@ -1,10 +1,7 @@
 import axios from 'axios'
 import React, { useState } from 'react'
-
-import html2canvas from 'html2canvas'
-import jsPDF from 'jspdf'
-
 import InputColor from 'react-input-color'
+import { ChromePicker } from 'react-color'
 function Form() {
   const [data, setdata] = useState('')
   const [width, setWidth] = useState(0)
@@ -19,19 +16,19 @@ function Form() {
     { id: 3, val: 'PNG' },
   ]
 
-  let submit = async () => {
-    let c = color.hex.slice(1)
-    let bg = bgColor.hex.slice(1)
+  let submit = () => {
     try {
-      const qrCodeUrl = await axios.post(
-        `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
+      if (data !== '' && width !== 0 && height != 0) {
+        const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
           data,
-        )}&size=${width}x${height}&format=${format}&color=${c}&bgcolor=${bg}`,
-      )
+        )}&size=${width}x${height}&format=${format}&color=${color}&bgcolor=${bgColor}`
 
-      setQr(qrCodeUrl.config.url)
+        setQr(qrCodeUrl)
 
-      console.log(qr)
+        console.log(qr)
+      } else {
+        alert('Please fill all data')
+      }
     } catch (err) {
       console.log(err)
     }
@@ -83,26 +80,31 @@ function Form() {
             />
 
             <label for="format">QR Image Format:</label>
-            <select id="format" onChange={(e) => setFormat(e.target.value)}>
+            <select
+              id="format"
+              value={'JPG'}
+              onChange={(e) => setFormat(e.target.value)}
+            >
               {option.map((value, id) => (
-                <option key={id} value={value.val}>
-                  {value.val}
-                </option>
+                <option key={id}>{value.val}</option>
               ))}
             </select>
 
             <label for="qr-color">QR Code Color:</label>
-            <InputColor
-              initialValue="#f2f3f7ff"
-              onChange={setColor}
+            <input
+              type="color"
+              onChange={(e) => {
+                setColor(e.target.value.substring(1))
+              }}
               placement="right"
             />
 
             <label for="bg-color">Background Color:</label>
-            <InputColor
-              id="color-box"
-              initialValue="#070708ff"
-              onChange={setBgColor}
+            <input
+              type="color"
+              onChange={(e) => {
+                setBgColor(e.target.value.substring(1))
+              }}
               placement="right"
             />
 
@@ -110,15 +112,17 @@ function Form() {
               <button id="generate" onClick={submit}>
                 Generate QR Code
               </button>
-              <button id="download" onClick={downloadImage}>
-                download
-              </button>
+              {qr ? (
+                <button id="download" onClick={downloadImage}>
+                  download
+                </button>
+              ) : (
+                ''
+              )}
             </div>
           </div>
 
-          <div id="qr-code">
-            <img src={qr} />
-          </div>
+          <div id="qr-code">{qr && <img src={qr} alt="qrcode" />}</div>
         </div>
       </div>
     </>
